@@ -2,41 +2,28 @@ import JSZip from "jszip";
 
 /**
  * Ensure [Content_Types].xml has a Default entry for the "webp" extension.
- * Also cleans up unused old image extension defaults if no files of that type remain.
+ *
+ * Uses string manipulation instead of DOMParser/XMLSerializer to avoid
+ * XML round-trip side effects (xmlns="" injection, whitespace changes)
+ * that corrupt the content types and break embedded font recognition.
  */
 export async function updateContentTypes(
   zip: JSZip,
   renamedExtensions: Set<string>,
 ): Promise<void> {
+  if (renamedExtensions.size === 0) return;
+
   const ctFile = zip.file("[Content_Types].xml");
   if (!ctFile) return;
 
-  const xml = await ctFile.async("text");
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, "application/xml");
-  const typesEl = doc.documentElement;
+  let xml = await ctFile.async("text");
 
   // Check if webp Default already exists
-  let hasWebp = false;
-  const defaults = typesEl.getElementsByTagName("Default");
-  for (let i = 0; i < defaults.length; i++) {
-    const ext = defaults[i]!.getAttribute("Extension");
-    if (ext?.toLowerCase() === "webp") {
-      hasWebp = true;
-      break;
-    }
-  }
+  if (/Extension\s*=\s*"webp"/i.test(xml)) return;
 
-  // Add webp Default if needed
-  if (!hasWebp && renamedExtensions.size > 0) {
-    const webpDefault = doc.createElement("Default");
-    webpDefault.setAttribute("Extension", "webp");
-    webpDefault.setAttribute("ContentType", "image/webp");
-    typesEl.insertBefore(webpDefault, typesEl.firstChild);
-  }
+  // Insert a webp Default element right after the opening <Types ...> tag
+  const webpEntry = '<Default Extension="webp" ContentType="image/webp"/>';
+  xml = xml.replace(/(<Types[^>]*>)/, `$1${webpEntry}`);
 
-  // Serialize back
-  const serializer = new XMLSerializer();
-  const newXml = serializer.serializeToString(doc);
-  zip.file("[Content_Types].xml", newXml);
+  zip.file("[Content_Types].xml", xml);
 }
