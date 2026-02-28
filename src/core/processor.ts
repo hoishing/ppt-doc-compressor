@@ -4,6 +4,7 @@ import { parseDocxImages } from "./docx-parser";
 import { compressImage } from "./image-compressor";
 import { updateContentTypes } from "./content-types";
 import type { ImageDimensions } from "./pptx-parser";
+import type { ImageFormat } from "../ui/settings";
 
 export interface ProcessStats {
   originalSize: number;
@@ -41,6 +42,7 @@ export async function processDocument(
   file: File,
   quality: number,
   dpi: number,
+  format: ImageFormat,
   onProgress: (current: number, total: number) => void,
 ): Promise<ProcessResult> {
   const arrayBuffer = await file.arrayBuffer();
@@ -100,13 +102,14 @@ export async function processDocument(
       dims.width,
       dims.height,
       quality,
+      format,
     );
 
     if (wasCompressed) {
       imagesCompressed++;
 
-      // Determine new extension based on the compressed blob type
-      const newExt = compressedBlob.type === "image/webp" ? "webp" : "jpeg";
+      // Determine new extension based on the target format
+      const newExt = format;
       const oldExt = mediaPath.split(".").pop()?.toLowerCase() ?? "";
 
       // Build new path with new extension
@@ -129,7 +132,7 @@ export async function processDocument(
   // Step 4: Update relationship files if any images were renamed
   if (renames.size > 0) {
     await updateRelationships(zip, renames);
-    await updateContentTypes(zip, renamedExtensions);
+    await updateContentTypes(zip, renamedExtensions, format);
   }
 
   // Step 5: Generate output

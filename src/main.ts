@@ -48,6 +48,7 @@ async function compressAll(): Promise<void> {
         entry.file,
         settings.quality,
         settings.dpi,
+        settings.format,
         (current, total) => {
           const pct = total > 0 ? Math.round((current / total) * 100) : 100;
           updateEntry(entry.id, { progress: pct });

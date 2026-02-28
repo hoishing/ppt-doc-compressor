@@ -1,5 +1,8 @@
+import type { ImageFormat } from "../ui/settings";
+
 /**
- * Compress an image blob by resizing it to target dimensions and encoding as WebP.
+ * Compress an image blob by resizing it to target dimensions and encoding
+ * in the specified format (WebP or JPEG).
  * Returns the compressed blob, or the original if compression would increase size.
  */
 export async function compressImage(
@@ -7,16 +10,13 @@ export async function compressImage(
   targetWidth: number,
   targetHeight: number,
   quality: number,
+  format: ImageFormat,
 ): Promise<{ blob: Blob; wasCompressed: boolean }> {
   const img = await loadImage(imageBlob);
 
   // Determine actual target size — don't upscale
   const finalWidth = Math.min(targetWidth, img.naturalWidth);
   const finalHeight = Math.min(targetHeight, img.naturalHeight);
-
-  // If we're not resizing and the image is already small, just try WebP re-encode
-  const needsResize =
-    finalWidth < img.naturalWidth || finalHeight < img.naturalHeight;
 
   const canvas = document.createElement("canvas");
   canvas.width = finalWidth;
@@ -28,20 +28,17 @@ export async function compressImage(
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
-  const webpBlob = await canvasToBlob(canvas, "image/webp", quality);
+  const mimeTypes: Record<ImageFormat, string> = {
+    webp: "image/webp",
+    jpeg: "image/jpeg",
+    png: "image/png",
+  };
+  const mimeType = mimeTypes[format];
+  const compressedBlob = await canvasToBlob(canvas, mimeType, quality);
 
   // Only use compressed version if it's actually smaller
-  if (webpBlob.size < imageBlob.size) {
-    return { blob: webpBlob, wasCompressed: true };
-  }
-
-  // If WebP didn't help and we resized, try the original format at target size
-  if (needsResize) {
-    // Try JPEG as fallback for photos
-    const jpegBlob = await canvasToBlob(canvas, "image/jpeg", quality);
-    if (jpegBlob.size < imageBlob.size) {
-      return { blob: jpegBlob, wasCompressed: true };
-    }
+  if (compressedBlob.size < imageBlob.size) {
+    return { blob: compressedBlob, wasCompressed: true };
   }
 
   // No improvement — return original untouched

@@ -1,6 +1,9 @@
+export type ImageFormat = "webp" | "jpeg" | "png";
+
 export interface Settings {
   quality: number;
   dpi: number;
+  format: ImageFormat;
 }
 
 export type SettingsChangeCallback = (settings: Settings) => void;
@@ -12,11 +15,17 @@ const DPI_OPTIONS = [
   { value: 300, label: "300 (Print)" },
 ];
 
+const FORMAT_OPTIONS: { value: ImageFormat; label: string }[] = [
+  { value: "webp", label: "WebP" },
+  { value: "jpeg", label: "JPEG" },
+  { value: "png", label: "PNG" },
+];
+
 export function createSettings(
   container: HTMLElement,
   onCompressAll: CompressCallback,
 ): { getSettings: () => Settings } {
-  const state: Settings = { quality: 0.8, dpi: 150 };
+  const state: Settings = { quality: 0.8, dpi: 150, format: "webp" };
 
   const card = document.createElement("div");
   card.className = "card bg-base-100 shadow-sm";
@@ -44,6 +53,17 @@ export function createSettings(
             ).join("")}
           </select>
         </div>
+        <div class="min-w-28">
+          <label class="label">
+            <span class="label-text font-medium">Format</span>
+          </label>
+          <select id="format-select" class="select select-bordered select-sm w-full">
+            ${FORMAT_OPTIONS.map(
+              (o) =>
+                `<option value="${o.value}" ${o.value === state.format ? "selected" : ""}>${o.label}</option>`,
+            ).join("")}
+          </select>
+        </div>
         <div>
           <button id="compress-btn" class="btn btn-primary btn-sm" disabled>
             Compress All
@@ -58,6 +78,7 @@ export function createSettings(
   const slider = card.querySelector<HTMLInputElement>("#quality-slider")!;
   const valueDisplay = card.querySelector<HTMLSpanElement>("#quality-value")!;
   const dpiSelect = card.querySelector<HTMLSelectElement>("#dpi-select")!;
+  const formatSelect = card.querySelector<HTMLSelectElement>("#format-select")!;
   const compressBtn = card.querySelector<HTMLButtonElement>("#compress-btn")!;
 
   slider.addEventListener("input", () => {
@@ -67,6 +88,10 @@ export function createSettings(
 
   dpiSelect.addEventListener("change", () => {
     state.dpi = parseInt(dpiSelect.value, 10);
+  });
+
+  formatSelect.addEventListener("change", () => {
+    state.format = formatSelect.value as ImageFormat;
   });
 
   compressBtn.addEventListener("click", () => {
