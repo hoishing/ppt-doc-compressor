@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "tsc && vite build && git subtree push --prefix dist origin gh-pages"
   },
   "dependencies": {
     "file-saver": "^2.0.5",
