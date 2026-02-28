@@ -15,14 +15,13 @@ bun install          # Install dependencies
 bun run dev          # Start Vite dev server
 bun run build        # TypeScript compile + Vite production build
 bun run preview      # Preview production build
-bun run deploy       # Build + deploy to GitHub Pages via gh-pages
 ```
 
 No test runner or linter is configured.
 
 ## Deployment
 
-Hosted on GitHub Pages at `https://hoishing.github.io/ppt-doc-compressor/`. Vite `base` is set to `/ppt-doc-compressor/` in `vite.config.ts` — all asset paths must work under this subpath.
+Hosted on Cloudflare Pages. Configuration in `wrangler.toml`. Build output is `dist/`.
 
 ## Architecture
 
@@ -52,7 +51,7 @@ src/
 ## Tech Stack
 
 - **Vanilla TypeScript** — no framework, direct DOM manipulation
-- **Vite** — build tool (base path: `/ppt-doc-compressor/`)
+- **Vite** — build tool
 - **Tailwind CSS 4 + DaisyUI 5** — styling (`@plugin "daisyui"` in style.css)
 - **jszip** — ZIP read/write for Office files
 - **file-saver** — triggering downloads
