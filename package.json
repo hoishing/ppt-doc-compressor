@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "deploy": "tsc && vite build && git subtree push --prefix dist origin gh-pages"
+    "deploy": "tsc && vite build && gh-pages -d dist"
   },
   "dependencies": {
     "file-saver": "^2.0.5",
@@ -19,6 +19,7 @@
     "daisyui": "^5.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
+    "gh-pages": "^6.1.2",
     "vite": "^6.1.0"
   }
 }
