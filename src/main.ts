@@ -8,6 +8,10 @@ import {
   updateEntry,
 } from "./ui/file-list";
 import { processDocument } from "./core/processor";
+import { createThemeToggle } from "./ui/theme-toggle";
+
+// Initialize theme toggle
+createThemeToggle(document.getElementById("theme-toggle")!);
 
 // Initialize UI components
 const settingsContainer = document.getElementById("settings")!;
